@@ -67,11 +67,3 @@ def calculate_building_for_scenario(scenario_name: str, building: dict | None = 
     for building_data in buildings:
         result = api.calc_building(session, building_data, project_data)
         store_building_result(scenario_name, result)
-
-
-
-
-if __name__ == "__main__":
-    print(list(get_list_of_scenarios()))
-    # d = load_scenario_weather_data("try_mean_rcp85.p3")
-    # s = update_scenario_weather_data({"proj_json": {"ir": 5}}, d)

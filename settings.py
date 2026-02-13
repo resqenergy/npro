@@ -29,6 +29,7 @@ if not (NPRO_EMAIL and NPRO_PASSWORD):
 
 if not NPRO_PROJECT:
     raise ValueError("NPRO_PROJECT must be set")
+logger.info(f"NPRO Project '{NPRO_PROJECT}' is activated.")
 
 
 def save_debug_data(data: dict, name: str) -> None:
