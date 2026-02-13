@@ -57,7 +57,7 @@ def calculate_building_for_scenario(scenario_name: str, building: dict | None = 
     """Run a simulation with given scenario."""
     session = api.setup_session()
     api.login(session)
-    project_data = api.load_scenario(session, settings.NPRO_PROJECT)
+    project_data = api.load_scenario(session)
     weather_data = load_scenario_weather_data(scenario_name)
     project_data = update_weather_data(project_data, weather_data)
     if building is None:

@@ -54,8 +54,10 @@ def get_building_by_name(scenario_data: dict, building_name: str) -> dict:
     raise KeyError(f"Building with name '{building_name}' not found.")
 
 
-def load_scenario(session: requests.Session, project: str) -> dict:
+def load_scenario(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
     """Load scenario data for given project."""
+    if project is None:
+        raise KeyError("Project not found. You can set it using env var NPRO_PROJECT.")
     response = session.post(
         f"{settings.NPRO_API}/load_scenario", json={"projectStr": project}
     )
@@ -65,7 +67,7 @@ def load_scenario(session: requests.Session, project: str) -> dict:
         raise RuntimeError("Could not load scenario.")
     if settings.DEBUG:
         settings.save_debug_data(data["data"], "scenario")
-    settings.logger.info(f"Successfully loaded scenario '{project}'.")
+    settings.logger.info(f"Successfully loaded scenario '{settings.NPRO_PROJECT}'.")
     return data["data"]
 
 

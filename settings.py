@@ -28,9 +28,7 @@ if not (NPRO_EMAIL and NPRO_PASSWORD):
     raise ValueError("NPRO_EMAIL and NPRO_PASSWORD must be set")
 
 if not NPRO_PROJECT:
-    raise ValueError("NPRO_PROJECT must be set")
-logger.info(f"NPRO Project '{NPRO_PROJECT}' is activated.")
-
+    logger.info(f"NPRO Project not set (NPRO_PROJECT). You can use `uv run main.py list` to see available projects. ")
 
 def save_debug_data(data: dict, name: str) -> None:
     save_name = f"{name}_{uuid.uuid4()}.json"
