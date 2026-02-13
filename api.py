@@ -37,24 +37,26 @@ def get_list_of_projects(session: requests.Session) -> list[dict]:
     if data["server_msg"] != "projectListLoaded":
         raise RuntimeError("Could not load project list.")
     if settings.DEBUG:
-        settings.save_debug_data(data["data"]["project_list"], "projects")
+        settings.save_debug_data(data["data"]["project_list"], "project_list")
     return data["data"]["project_list"]
 
 
-def get_list_of_buildings(scenario_data: dict) -> list[dict]:
+def get_list_of_buildings(project_data: dict) -> list[dict]:
     """Return list of configured NPRO buildings."""
-    return list(scenario_data["proj_json"]["buildingList"].values())
+    return list(project_data["proj_json"]["buildingList"].values())
 
 
-def get_building_by_name(scenario_data: dict, building_name: str) -> dict:
+def get_building_by_name(project_data: dict, building_name: str) -> dict:
     """Return configured NPRO building by name."""
-    for building_id, building_data in scenario_data["proj_json"]["buildingList"].items():
+    for building_id, building_data in project_data["proj_json"]["buildingList"].items():
         if building_data["buildingName"] == building_name:
+            if settings.DEBUG:
+                settings.save_debug_data(building_data, "building")
             return building_data
     raise KeyError(f"Building with name '{building_name}' not found.")
 
 
-def load_scenario(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
+def load_project(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
     """Load scenario data for given project."""
     if project is None:
         raise KeyError("Project not found. You can set it using env var NPRO_PROJECT.")
@@ -64,18 +66,18 @@ def load_scenario(session: requests.Session, project: str = settings.NPRO_PROJEC
     response.raise_for_status()
     data = response.json()
     if data["server_msg"] != "scenarioLoaded":
-        raise RuntimeError("Could not load scenario.")
+        raise RuntimeError("Could not load project '{project}'.")
     if settings.DEBUG:
-        settings.save_debug_data(data["data"], "scenario")
-    settings.logger.info(f"Successfully loaded scenario '{settings.NPRO_PROJECT}'.")
+        settings.save_debug_data(data["data"], "project")
+    settings.logger.info(f"Successfully loaded project '{settings.NPRO_PROJECT}'.")
     return data["data"]
 
 
-def calc_building(session: requests.Session, building_data: dict, scenario_data: dict) -> dict:
+def calc_building(session: requests.Session, building_data: dict, project_data: dict) -> dict:
     """Calculate building results for given building and scenario data."""
     data = {
         "newBuilding": building_data,
-        "projectData": scenario_data["proj_json"],
+        "projectData": project_data["proj_json"],
     }
     response = session.post(f"{settings.NPRO_API}/calc_building", json=data)
     response.raise_for_status()
@@ -83,11 +85,11 @@ def calc_building(session: requests.Session, building_data: dict, scenario_data:
     if result["response"] != "success":
         raise RuntimeError("Could not load building data.")
     if settings.DEBUG:
-        settings.save_debug_data(result["data"], "building")
+        settings.save_debug_data(result["data"], "building_result")
     return result["data"]
 
 
-def run_simulation(session: requests.Session, scenario_data: dict) -> None:
+def run_simulation(session: requests.Session, project_data: dict) -> None:
     """
     Run simulation with given scenario data.
 
@@ -100,7 +102,7 @@ def run_simulation(session: requests.Session, scenario_data: dict) -> None:
         "calc_id": 53029542,
         "license": "academic",
         "BACKEND_VERSION": "4.0.0",
-        "data": scenario_data["proj_json"],
+        "data": project_data["proj_json"],
     }
     response = session.post(f"{settings.NPRO_API}/calc_main", json=data)
     response.raise_for_status()

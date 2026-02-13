@@ -41,7 +41,7 @@ def get_list_of_scenarios() -> Iterator[str]:
             yield scenario_file.stem
 
 
-def load_scenario_weather_data(scenario: str) -> dict[str, list[float]]:
+def load_scenario(scenario: str) -> dict[str, list[float]]:
     """Load weather data from scenario file."""
     filename = f"{scenario}.csv"
     data = pd.read_csv(settings.SCENARIOS_DIR / filename, sep=";")
@@ -50,6 +50,15 @@ def load_scenario_weather_data(scenario: str) -> dict[str, list[float]]:
     )
     data = data.rename(columns=MAPPINGS)
     return data.to_dict(orient="list")
+
+
+def load_building(building_name: str) -> dict:
+    """Load building from buildings folder."""
+    filename = f"{building_name}.json"
+    if not (settings.BUILDINGS_DIR / filename).exists():
+        raise FileNotFoundError(f"Building '{building_name}' not found in {settings.BUILDINGS_DIR}.")
+    with (settings.BUILDINGS_DIR / filename).open("r") as f:
+        return json.load(f)
 
 
 def update_weather_data(
@@ -72,9 +81,10 @@ def calculate_building_for_scenario(
     """Run a simulation with given scenario."""
     session = api.setup_session()
     api.login(session)
-    project_data = api.load_scenario(session)
-    weather_data = load_scenario_weather_data(scenario_name)
+    project_data = api.load_project(session)
+    weather_data = load_scenario(scenario_name)
     project_data = update_weather_data(project_data, weather_data)
+    api.run_simulation(session, project_data)
     if building is None:
         buildings = api.get_list_of_buildings(project_data)
     else:

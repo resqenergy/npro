@@ -3,6 +3,7 @@
 import os
 import json
 import pathlib
+
 from dotenv import load_dotenv
 from loguru import logger
 import uuid
@@ -11,6 +12,7 @@ load_dotenv()
 
 ROOT_DIR = pathlib.Path(__file__).parent
 SCENARIOS_DIR = ROOT_DIR / "scenarios"
+BUILDINGS_DIR = ROOT_DIR / "buildings"
 RESULTS_DIR = ROOT_DIR / "results"
 
 DEBUG = os.getenv("DEBUG", "False") == "True"

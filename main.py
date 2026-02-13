@@ -8,8 +8,6 @@ import argparse
 
 import scenario
 
-NO_ARGS_FCT = ("list",)
-
 
 def list_projects() -> None:
     """List all projects."""
@@ -19,14 +17,27 @@ def list_projects() -> None:
         pprint.pp(project, indent=2)
 
 
+def list_buildings() -> None:
+    """List all buildings of a project."""
+    session = api.setup_session()
+    api.login(session)
+    project_data = api.load_project(session)
+    for building in api.get_list_of_buildings(project_data):
+        pprint.pp(building, indent=2)
+
+
 def run_scenario(args: argparse.Namespace) -> None:
     """Run simulation with given scenario data."""
-    if args.scenario_name == "all":
+    if args.scenario == "all":
         scenario_names = list(scenario.get_list_of_scenarios())
     else:
         scenario_names = [args.scenario_name]
+    if args.building == "existing":
+        building = None
+    else:
+        building = scenario.load_building(args.building)
     for scenario_name in scenario_names:
-        scenario.calculate_building_for_scenario(scenario_name)
+        scenario.calculate_building_for_scenario(scenario_name, building)
 
 
 def main() -> None:
@@ -38,16 +49,21 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # List projects
-    projects_parser = subparsers.add_parser("list")
+    projects_parser = subparsers.add_parser("projects")
     projects_parser.set_defaults(func=list_projects)
+
+    # List buildings
+    projects_parser = subparsers.add_parser("buildings")
+    projects_parser.set_defaults(func=list_buildings)
 
     # Run scenarios
     run_parser = subparsers.add_parser("run")
-    run_parser.add_argument("scenario_name", nargs="?", default="all")
+    run_parser.add_argument("scenario", nargs="?", default="all")
+    run_parser.add_argument("building", nargs="?", default="existing")
     run_parser.set_defaults(func=run_scenario)
 
     args = parser.parse_args()
-    if args.command in NO_ARGS_FCT:
+    if args.command in ("projects", "buildings"):
         args.func()
     else:
         args.func(args)
