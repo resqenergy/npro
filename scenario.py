@@ -1,5 +1,8 @@
 """Module to load and update scenario data."""
+
 from __future__ import annotations
+
+from functools import reduce
 
 import json
 from typing import Iterator
@@ -13,8 +16,23 @@ MAPPINGS = {
     "wind_speed": "windSpeed",
     "radiation_downwelling": "ghi",
     "radiation_direct": "dni",
-    "infrared": "ir"
+    "infrared": "ir",
 }
+
+BUILDING_ENERGIE_KEYS = (
+    ("dhwProfile",),
+    ("emobProfile",),
+    ("elecDem", "import", "profile"),
+    ("elecBes", "import", "profile"),
+    ("cool", "import", "profile"),
+    ("distrCool", "import", "profile"),
+    ("heat", "import", "profile"),
+    ("spaceCoolProfile",),
+    ("processCoolProfile",),
+    ("spaceHeatProfile",),
+    ("plugLoadsProfile",),
+)
+
 
 def get_list_of_scenarios() -> Iterator[str]:
     """Get list of scenarios."""
@@ -22,16 +40,21 @@ def get_list_of_scenarios() -> Iterator[str]:
         if scenario_file.suffix == ".csv":
             yield scenario_file.stem
 
+
 def load_scenario_weather_data(scenario: str) -> dict[str, list[float]]:
     """Load weather data from scenario file."""
     filename = f"{scenario}.csv"
     data = pd.read_csv(settings.SCENARIOS_DIR / filename, sep=";")
-    data = data.drop([column for column in data.columns if column not in MAPPINGS], axis=1)
+    data = data.drop(
+        [column for column in data.columns if column not in MAPPINGS], axis=1
+    )
     data = data.rename(columns=MAPPINGS)
     return data.to_dict(orient="list")
 
 
-def update_weather_data(scenario_data: dict, weather_data: dict[str, list[float]]) -> dict:
+def update_weather_data(
+    scenario_data: dict, weather_data: dict[str, list[float]]
+) -> dict:
     """Update scenario data with weather data."""
     for key, timeseries in weather_data.items():
         scenario_data["proj_json"][key] = timeseries
@@ -43,17 +66,9 @@ def update_weather_data(scenario_data: dict, weather_data: dict[str, list[float]
     return scenario_data
 
 
-def store_building_result(scenario_name: str, building_data: dict) -> None:
-    """Store building result in scenario folder of results folder."""
-    filename = f"{building_data['buildingName']}.json"
-    target = settings.RESULTS_DIR / scenario_name
-    target.mkdir(exist_ok=True)
-    with (target / filename).open("w") as f:
-        json.dump(building_data, f, indent=2)
-    settings.logger.info(f"Stored building data as {filename} in {target}.")
-
-
-def calculate_building_for_scenario(scenario_name: str, building: dict | None = None) -> None:
+def calculate_building_for_scenario(
+    scenario_name: str, building: dict | None = None
+) -> None:
     """Run a simulation with given scenario."""
     session = api.setup_session()
     api.login(session)
@@ -66,4 +81,25 @@ def calculate_building_for_scenario(scenario_name: str, building: dict | None = 
         buildings = [building]
     for building_data in buildings:
         result = api.calc_building(session, building_data, project_data)
-        store_building_result(scenario_name, result)
+        store_building_result_as_json(scenario_name, result)
+        store_building_result_as_csv(scenario_name, result)
+
+
+def store_building_result_as_json(scenario_name: str, building_data: dict) -> None:
+    """Store building result as JSON in scenario folder of results folder."""
+    filename = f"{building_data['buildingName']}.json"
+    target = settings.RESULTS_DIR / scenario_name
+    target.mkdir(exist_ok=True)
+    with (target / filename).open("w") as f:
+        json.dump(building_data, f, indent=2)
+    settings.logger.info(f"Stored building data as {filename} in {target}.")
+
+
+def store_building_result_as_csv(scenario_name: str, building_data: dict) -> None:
+    """Store building result as CSV in scenario folder of results folder."""
+    filename = f"{building_data['buildingName']}.csv"
+    target = settings.RESULTS_DIR / scenario_name
+    target.mkdir(exist_ok=True)
+    df = pd.DataFrame({keys[0]: reduce(lambda current, key: current[key], keys, building_data) for keys in BUILDING_ENERGIE_KEYS})
+    df.to_csv(target / filename, index=False)
+    settings.logger.info(f"Stored building data as {filename} in {target}.")
