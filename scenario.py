@@ -11,6 +11,8 @@ import settings
 import api
 import pandas as pd
 
+import infrared
+
 MAPPINGS = {
     "air_temperature_mean": "airTemp",
     "wind_speed": "windSpeed",
@@ -45,6 +47,7 @@ def load_scenario(scenario: str) -> dict[str, list[float]]:
     """Load weather data from scenario file."""
     filename = f"{scenario}.csv"
     data = pd.read_csv(settings.SCENARIOS_DIR / filename, sep=";")
+    data["infrared"] = infrared.calculate_longwave_radiation(data)
     data = data.drop(
         [column for column in data.columns if column not in MAPPINGS], axis=1
     )
