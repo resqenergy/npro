@@ -181,7 +181,7 @@ def store_building_result_as_json(scenario_name: str, building_data: dict) -> No
     """Store building result as JSON in scenario folder of results folder."""
     filename = f"{building_data['buildingName']}.json"
     target = settings.RESULTS_DIR / scenario_name
-    target.mkdir(exist_ok=True)
+    target.mkdir(exist_ok=True, parents=True)
     with (target / filename).open("w") as f:
         json.dump(building_data, f, indent=2)
     settings.logger.info(f"Stored building data as {filename} in {target}.")
@@ -191,7 +191,7 @@ def store_building_result_as_csv(scenario_name: str, building_data: dict) -> Non
     """Store building result as CSV in scenario folder of results folder."""
     filename = f"{building_data['buildingName']}.csv"
     target = settings.RESULTS_DIR / scenario_name
-    target.mkdir(exist_ok=True)
+    target.mkdir(exist_ok=True, parents=True)
     df = pd.DataFrame(
         {
             keys[0]: reduce(lambda current, key: current[key], keys, building_data)
