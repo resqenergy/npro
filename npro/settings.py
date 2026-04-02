@@ -11,13 +11,13 @@ import uuid
 load_dotenv()
 
 ROOT_DIR = pathlib.Path.cwd()
-SCENARIOS_DIR = ROOT_DIR / "scenarios"
-WEATHER_DIR = ROOT_DIR / "weather"
-BUILDINGS_DIR = ROOT_DIR / "buildings"
-RESULTS_DIR = ROOT_DIR / "results"
+SCENARIOS_DIR = ROOT_DIR / os.getenv("NPRO_SCENARIO_DIR", "scenarios")
+WEATHER_DIR = ROOT_DIR / os.getenv("NPRO_WEATHER_DIR", "weather")
+BUILDING_DIR = ROOT_DIR / os.getenv("NPRO_BUILDING_DIR", "buildings")
+RESULT_DIR = ROOT_DIR / os.getenv("NPRO_RESULT_DIR", "results")
+DEBUG_DIR = ROOT_DIR / os.getenv("NPRO_DEBUG_DIR", "debug")
 
-DEBUG = os.getenv("DEBUG", "False") == "True"
-DEBUG_DIR = ROOT_DIR / "debug"
+DEBUG = os.getenv("NPRO_DEBUG", "False") == "True"
 if DEBUG:
     logger.info("DEBUG MODE ENABLED")
     DEBUG_DIR.mkdir(exist_ok=True)

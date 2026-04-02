@@ -79,11 +79,11 @@ def load_weather_data(name: str) -> dict[str, list[float]]:
 def load_building(building_name: str) -> dict:
     """Load building from buildings folder."""
     filename = f"{building_name}.json"
-    if not (settings.BUILDINGS_DIR / filename).exists():
+    if not (settings.BUILDING_DIR / filename).exists():
         raise FileNotFoundError(
-            f"Building '{building_name}' not found in {settings.BUILDINGS_DIR}."
+            f"Building '{building_name}' not found in {settings.BUILDING_DIR}."
         )
-    with (settings.BUILDINGS_DIR / filename).open("r") as f:
+    with (settings.BUILDING_DIR / filename).open("r") as f:
         building_data = json.load(f)
     settings.logger.info(f"Loaded building data for building '{building_name}'.")
     return building_data
@@ -180,7 +180,7 @@ def calculate_building_for_scenario(
 def store_building_result_as_json(scenario_name: str, building_data: dict) -> None:
     """Store building result as JSON in scenario folder of results folder."""
     filename = f"{building_data['buildingName']}.json"
-    target = settings.RESULTS_DIR / scenario_name
+    target = settings.RESULT_DIR / scenario_name
     target.mkdir(exist_ok=True, parents=True)
     with (target / filename).open("w") as f:
         json.dump(building_data, f, indent=2)
@@ -190,7 +190,7 @@ def store_building_result_as_json(scenario_name: str, building_data: dict) -> No
 def store_building_result_as_csv(scenario_name: str, building_data: dict) -> None:
     """Store building result as CSV in scenario folder of results folder."""
     filename = f"{building_data['buildingName']}.csv"
-    target = settings.RESULTS_DIR / scenario_name
+    target = settings.RESULT_DIR / scenario_name
     target.mkdir(exist_ok=True, parents=True)
     df = pd.DataFrame(
         {
