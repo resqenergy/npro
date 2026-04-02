@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import copy
-from functools import reduce
-
 import json
-import yaml
-from typing import Iterator, Any
+from functools import reduce
+from typing import Any, Iterator
 
-import settings
-import api
 import pandas as pd
+import yaml
 
-import infrared
+from npro import api, infrared, settings
 
 MAPPINGS = {
     "air_temperature_mean": "airTemp",

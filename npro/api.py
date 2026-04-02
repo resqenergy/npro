@@ -2,7 +2,7 @@
 
 import requests
 
-import settings
+from npro import settings
 
 
 def setup_session() -> requests.Session:

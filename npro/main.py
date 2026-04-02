@@ -1,12 +1,10 @@
 """Main module to run simulations."""
 from __future__ import annotations
 
+import argparse
 import pprint
 
-import api
-import argparse
-
-import scenario
+from npro import api, scenario
 
 
 def list_projects() -> None:
