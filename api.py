@@ -46,15 +46,17 @@ def get_list_of_buildings(project_data: dict) -> list[dict]:
     return list(project_data["proj_json"]["buildingList"].values())
 
 
-def get_building_by_name(project_data: dict, building_name: str) -> dict:
-    """Return configured NPRO building by name."""
-    for building_id, building_data in project_data["proj_json"]["buildingList"].items():
-        if building_data["buildingName"] == building_name:
-            if settings.DEBUG:
-                settings.save_debug_data(building_data, "building")
-            return building_data
-    raise KeyError(f"Building with name '{building_name}' not found.")
-
+def get_default_building_data(building_type_data: dict) -> dict:
+    """Return default building data."""
+    response = requests.post(
+        f"{settings.NPRO_API}/get_default_values",
+        json=building_type_data,
+    )
+    response.raise_for_status()
+    result = response.json()
+    if result["response"] != "success":
+        raise RuntimeError("Could not load building data.")
+    return result["data"]
 
 def load_project(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
     """Load scenario data for given project."""

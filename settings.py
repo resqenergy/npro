@@ -12,6 +12,7 @@ load_dotenv()
 
 ROOT_DIR = pathlib.Path(__file__).parent
 SCENARIOS_DIR = ROOT_DIR / "scenarios"
+WEATHER_DIR = ROOT_DIR / "weather"
 BUILDINGS_DIR = ROOT_DIR / "buildings"
 RESULTS_DIR = ROOT_DIR / "results"
 
