@@ -10,7 +10,7 @@ import uuid
 
 load_dotenv()
 
-ROOT_DIR = pathlib.Path(__file__).parent
+ROOT_DIR = pathlib.Path.cwd()
 SCENARIOS_DIR = ROOT_DIR / "scenarios"
 WEATHER_DIR = ROOT_DIR / "weather"
 BUILDINGS_DIR = ROOT_DIR / "buildings"
