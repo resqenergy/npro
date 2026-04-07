@@ -63,16 +63,17 @@ def load_scenario(scenario_name: str) -> dict:
     return scenario_data
 
 
-def load_weather_data(name: str) -> dict[str, list[float]]:
+def load_weather_data(filename: str) -> dict[str, list[float]]:
     """Load weather data from scenario file."""
-    filename = f"{name}.csv"
+    if not (filename.endswith(".csv") or filename.endswith(".txt")):
+        filename = f"{filename}.csv"
     data = pd.read_csv(settings.WEATHER_DIR / filename, sep=";")
     data["infrared"] = infrared.calculate_longwave_radiation(data)
     data = data.drop(
         [column for column in data.columns if column not in MAPPINGS], axis=1
     )
     data = data.rename(columns=MAPPINGS)
-    settings.logger.info(f"Loaded weather data '{name}'.")
+    settings.logger.info(f"Loaded weather data from '{filename}'.")
     return data.to_dict(orient="list")
 
 
