@@ -35,7 +35,7 @@ def run_scenario(args: argparse.Namespace) -> None:
     else:
         building = scenario.load_building(args.building)
     for scenario_name in scenario_names:
-        scenario.calculate_building_for_scenario(scenario_name, building)
+        scenario.calculate_building_for_scenario(scenario_name, building, force_creation=args.force)
 
 
 def main() -> None:
@@ -58,6 +58,8 @@ def main() -> None:
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("scenario", nargs="?", default="all")
     run_parser.add_argument("building", nargs="?", default="existing")
+    run_parser.add_argument("-f", "--force", action="store_true")
+    run_parser.set_defaults(func=run_scenario)
     run_parser.set_defaults(func=run_scenario)
 
     args = parser.parse_args()

@@ -147,9 +147,12 @@ def update_weather_data(
 
 
 def calculate_building_for_scenario(
-    scenario_name: str, building: dict | None = None
+    scenario_name: str, building: dict | None = None, *, force_creation: bool = False
 ) -> None:
     """Run a simulation with given scenario."""
+    if (settings.RESULT_DIR / scenario_name).exists() and not force_creation:
+        settings.logger.info(f"Scenario '{scenario_name}' already exists. Skipping.")
+        return
     session = api.setup_session()
     api.login(session)
     project_data = api.load_project(session)
