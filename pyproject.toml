@@ -1,7 +1,7 @@
 [project]
 name = "npro"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "Tool to automatically apply weather data to NPRO projects."
 requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
@@ -11,9 +11,8 @@ dependencies = [
     "requests>=2.32.5",
 ]
 
-[tool.uv.build-backend]
-module-name = "npro"
-module-root = ""
+[tool.setuptools]
+packages = ["npro"]
 
 [project.scripts]
 npro = "npro.main:main"
