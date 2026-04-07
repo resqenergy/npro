@@ -55,7 +55,7 @@ def get_default_building_data(building_type_data: dict) -> dict:
     response.raise_for_status()
     result = response.json()
     if result["response"] != "success":
-        raise RuntimeError("Could not load building data.")
+        raise RuntimeError(f"Could not load building data ({building_type_data}).")
     return result["data"]
 
 def load_project(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
