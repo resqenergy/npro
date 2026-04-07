@@ -58,6 +58,7 @@ def get_default_building_data(building_type_data: dict) -> dict:
         raise RuntimeError(f"Could not load building data ({building_type_data}).")
     return result["data"]
 
+
 def load_project(session: requests.Session, project: str = settings.NPRO_PROJECT) -> dict:
     """Load scenario data for given project."""
     if project is None:

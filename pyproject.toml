@@ -17,6 +17,9 @@ packages = ["npro"]
 [project.scripts]
 npro = "npro.main:main"
 
+[tool.uv]
+package = true
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
