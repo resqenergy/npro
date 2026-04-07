@@ -98,13 +98,13 @@ def adapt_building(building_data: dict, building_update_data: dict) -> dict:
     Currently, if this happens, all default values will override existing values.
     """
     current_building_data = copy.deepcopy(building_data)
-    current_building_data.update(building_update_data)
     if any(key in BUILDING_TRIGGERS for key in building_update_data):
         building_type_data = {
             mapped_key: current_building_data[key] for key, mapped_key in BUILDING_TRIGGERS.items()
         }
         default_values = api.get_default_building_data(building_type_data)
         current_building_data.update(default_values)
+    current_building_data.update(building_update_data)
     return current_building_data
 
 
