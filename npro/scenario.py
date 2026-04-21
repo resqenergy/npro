@@ -10,7 +10,7 @@ from typing import Any, Iterator
 import pandas as pd
 import yaml
 
-from npro import api, infrared, settings
+from npro import api, cooling, infrared, settings
 
 MAPPINGS = {
     "air_temperature_mean": "airTemp",
@@ -90,7 +90,7 @@ def load_building(building_name: str) -> dict:
     return building_data
 
 
-def adapt_building(building_data: dict, building_update_data: dict) -> dict:
+def adapt_building(building_data: dict, building_update_data: dict, weather_data: dict) -> dict:
     """
     Update building data.
 
@@ -98,18 +98,32 @@ def adapt_building(building_data: dict, building_update_data: dict) -> dict:
     Currently, if this happens, all default values will override existing values.
     """
     current_building_data = copy.deepcopy(building_data)
-    if any(key in BUILDING_TRIGGERS for key in building_update_data):
-        building_type_data = {
-            mapped_key: current_building_data[key] for key, mapped_key in BUILDING_TRIGGERS.items()
-        }
-        default_values = api.get_default_building_data(building_type_data)
-        current_building_data.update(default_values)
+
+    # Changing some special keys (defined in BUILDING_TRIGGERS), changes default NPRO values
+    # This updates related values if special key values change:
+    building_type_data = {
+        mapped_key: building_update_data.get(key, current_building_data[key]) for key, mapped_key in BUILDING_TRIGGERS.items()
+    }
+    default_values = api.get_default_building_data(building_type_data)
+    current_building_data.update(default_values)
+
+    # If dynamic cooling calculation is activated,
+    # we need to read cooling temperature limit, desired temperature and cooling power from default values
+    # to calculate resulting cooling energy per year
+    if "calculate_cooling_demand" in building_update_data and building_update_data.pop("calculate_cooling_demand"):
+        temp_limit = default_values['limitTempCool']
+        base_temp = default_values['supplyTempSpaceCool']
+        cooling_power_max = default_values['peakDemSpecCool']
+        cdd = cooling.calculate_cdd(weather_data, base_temp, temp_limit, case="cooling")
+        cooling_demand = cooling.calculate_cool_demand(cdd, cooling_power_max, base_temp)
+        current_building_data['annDemSpecCool'] = cooling_demand
+
     current_building_data.update(building_update_data)
     return current_building_data
 
 
 def adapt_building_list_by_scenario(
-    building_list: list[dict], scenario_buildings: dict[str, dict[str, Any]]
+    building_list: list[dict], scenario_buildings: dict[str, dict[str, Any]], weather_data: dict
 ) -> list[dict]:
     """
     Adapt buildings in building list based on scenario buildings.
@@ -125,7 +139,7 @@ def adapt_building_list_by_scenario(
         building_data = get_building_by_name(
             building_list, based_on
         )
-        updated_building_data = adapt_building(building_data, scenario_building_data)
+        updated_building_data = adapt_building(building_data, scenario_building_data, weather_data)
         new_building_list.append(updated_building_data)
     settings.logger.info("Adapted building list by scenario buildings.")
     return new_building_list
@@ -169,7 +183,7 @@ def calculate_building_for_scenario(
 
     # Adapt buildings from scenario
     if "buildings" in scenario:
-        buildings = adapt_building_list_by_scenario(buildings, scenario["buildings"])
+        buildings = adapt_building_list_by_scenario(buildings, scenario["buildings"], weather_data)
 
     # Empty building list, as this is unneeded overhead
     project_data["proj_json"]["buildingList"] = {}
