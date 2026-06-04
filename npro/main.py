@@ -29,7 +29,7 @@ def run_scenario(args: argparse.Namespace) -> None:
     if args.scenario == "all":
         scenario_names = list(scenario.get_list_of_scenarios())
     else:
-        scenario_names = [args.scenario_name]
+        scenario_names = [args.scenario]
     if args.building == "existing":
         building = None
     else:
@@ -59,7 +59,6 @@ def main() -> None:
     run_parser.add_argument("scenario", nargs="?", default="all")
     run_parser.add_argument("building", nargs="?", default="existing")
     run_parser.add_argument("-f", "--force", action="store_true")
-    run_parser.set_defaults(func=run_scenario)
     run_parser.set_defaults(func=run_scenario)
 
     args = parser.parse_args()
