@@ -105,6 +105,11 @@ def adapt_building(building_data: dict, building_update_data: dict, weather_data
         mapped_key: building_update_data.get(key, current_building_data[key]) for key, mapped_key in BUILDING_TRIGGERS.items()
     }
     default_values = api.get_default_building_data(building_type_data)
+    if building_data["shOption"] != default_values["shOption"] and "shOption" not in building_update_data:
+        # This keeps existing shOption if it is not overwritten by scenario data.
+        # This is important as otherwise building calculation will fail due to mismatch between shOption and peakDemHeatOption
+        del default_values["shOption"]
+        del default_values["peakDemHeatOption"]
     current_building_data.update(default_values)
 
     # If dynamic cooling calculation is activated,
