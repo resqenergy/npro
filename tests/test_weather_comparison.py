@@ -7,20 +7,20 @@ import pandas as pd
 
 from npro import api, scenario, settings
 
-BUILDING_NAME = "Einfamilienhaus (ab 2002) | decentral"
+BUILDINGS = ["Einfamilienhaus (ab 2002) | decentral", "Mehrfamilienhaus (ab 2002) | central"]
 WEATHER_FILES = ["try_extr1_rcp85.p3.txt", "try_extr2_rcp85.p3.txt", "try_extr3_rcp85.p3.txt"]
 TEST_DATA_DIR = pathlib.Path(__file__).parent / "test_data"
 
 BUILDING_UPDATE_DATA = {
     "floorArea": 1000,
+    "calculate_cooling_demand": True,
     "shOption": "heatLoad",
     "peakDemHeatOption": "total",
-    "calculate_cooling_demand": True
 }
 
 
 def _run_building_calc(
-    session, project_data: dict, weather_file: str, result_dir: pathlib.Path, *, update_building: bool
+    session, project_data: dict, weather_file: str, result_dir: pathlib.Path, building_name: str, *, update_building: bool
 ) -> pathlib.Path:
     """Run single building calculation for given weather file, return CSV path.
 
@@ -39,7 +39,7 @@ def _run_building_calc(
     api.run_simulation(session, project_copy)
 
     building_list = api.get_list_of_buildings(project_copy)
-    building_data = scenario.get_building_by_name(building_list, BUILDING_NAME)
+    building_data = scenario.get_building_by_name(building_list, building_name)
     if update_building:
         building_data = scenario.adapt_building(building_data, BUILDING_UPDATE_DATA.copy(), weather_data)
 
@@ -51,7 +51,7 @@ def _run_building_calc(
     scenario_name = weather_file.removesuffix(".txt").removesuffix(".csv")
     scenario.store_building_result_as_csv(scenario_name, result)
 
-    return result_dir / scenario_name / f"{BUILDING_NAME}.csv"
+    return result_dir / scenario_name / f"{building_name}.csv"
 
 
 def test_building_results_differ_by_weather(tmp_path, monkeypatch):
@@ -68,24 +68,25 @@ def test_building_results_differ_by_weather(tmp_path, monkeypatch):
     api.login(session)
     project_data = api.load_project(session)
 
-    csv_paths = [
-        _run_building_calc(session, project_data, wf, tmp_path, update_building=False)
-        for wf in WEATHER_FILES
-    ]
+    for building_name in BUILDINGS:
+        csv_paths = [
+            _run_building_calc(session, project_data, wf, tmp_path, building_name, update_building=False)
+            for wf in WEATHER_FILES
+        ]
 
-    dfs = [pd.read_csv(p) for p in csv_paths]
-    sums = [df.sum() for df in dfs]
+        dfs = [pd.read_csv(p) for p in csv_paths]
+        sums = [df.sum() for df in dfs]
 
-    for s in range(len(sums)):
-        print(f"{WEATHER_FILES[s]}: {round(sums[s]['spaceHeatProfile'] / 1000)}")
+        for s in range(len(sums)):
+            print(f"{WEATHER_FILES[s]}: {round(sums[s]['spaceHeatProfile'] / 1000)}")
 
-    assert round(sums[0]['spaceHeatProfile']) != round(sums[1]['spaceHeatProfile'])
-    assert round(sums[1]['spaceHeatProfile']) != round(sums[2]['spaceHeatProfile'])
-    assert round(sums[2]['spaceHeatProfile']) != round(sums[0]['spaceHeatProfile'])
+        assert round(sums[0]['spaceHeatProfile']) != round(sums[1]['spaceHeatProfile'])
+        assert round(sums[1]['spaceHeatProfile']) != round(sums[2]['spaceHeatProfile'])
+        assert round(sums[2]['spaceHeatProfile']) != round(sums[0]['spaceHeatProfile'])
 
-    assert round(sums[0]['spaceCoolProfile']) != round(sums[1]['spaceCoolProfile'])
-    assert round(sums[1]['spaceCoolProfile']) != round(sums[2]['spaceCoolProfile'])
-    assert round(sums[2]['spaceCoolProfile']) != round(sums[0]['spaceCoolProfile'])
+        assert round(sums[0]['spaceCoolProfile']) != round(sums[1]['spaceCoolProfile'])
+        assert round(sums[1]['spaceCoolProfile']) != round(sums[2]['spaceCoolProfile'])
+        assert round(sums[2]['spaceCoolProfile']) != round(sums[0]['spaceCoolProfile'])
 
 
 def test_updated_building_results_differ_by_weather(tmp_path, monkeypatch):
@@ -102,21 +103,22 @@ def test_updated_building_results_differ_by_weather(tmp_path, monkeypatch):
     api.login(session)
     project_data = api.load_project(session)
 
-    csv_paths = [
-        _run_building_calc(session, project_data, wf, tmp_path, update_building=True)
-        for wf in WEATHER_FILES
-    ]
+    for building_name in BUILDINGS:
+        csv_paths = [
+            _run_building_calc(session, project_data, wf, tmp_path, building_name, update_building=True)
+            for wf in WEATHER_FILES
+        ]
 
-    dfs = [pd.read_csv(p) for p in csv_paths]
-    sums = [df.sum() for df in dfs]
+        dfs = [pd.read_csv(p) for p in csv_paths]
+        sums = [df.sum() for df in dfs]
 
-    for s in range(len(sums)):
-        print(f"{WEATHER_FILES[s]}: {round(sums[s]['spaceHeatProfile'] / 1000)}")
+        for s in range(len(sums)):
+            print(f"{WEATHER_FILES[s]}: {round(sums[s]['spaceHeatProfile'] / 1000)}")
 
-    assert round(sums[0]['spaceHeatProfile']) != round(sums[1]['spaceHeatProfile'])
-    assert round(sums[1]['spaceHeatProfile']) != round(sums[2]['spaceHeatProfile'])
-    assert round(sums[2]['spaceHeatProfile']) != round(sums[0]['spaceHeatProfile'])
+        assert round(sums[0]['spaceHeatProfile']) != round(sums[1]['spaceHeatProfile'])
+        assert round(sums[1]['spaceHeatProfile']) != round(sums[2]['spaceHeatProfile'])
+        assert round(sums[2]['spaceHeatProfile']) != round(sums[0]['spaceHeatProfile'])
 
-    assert round(sums[0]['spaceCoolProfile']) != round(sums[1]['spaceCoolProfile'])
-    assert round(sums[1]['spaceCoolProfile']) != round(sums[2]['spaceCoolProfile'])
-    assert round(sums[2]['spaceCoolProfile']) != round(sums[0]['spaceCoolProfile'])
+        assert round(sums[0]['spaceCoolProfile']) != round(sums[1]['spaceCoolProfile'])
+        assert round(sums[1]['spaceCoolProfile']) != round(sums[2]['spaceCoolProfile'])
+        assert round(sums[2]['spaceCoolProfile']) != round(sums[0]['spaceCoolProfile'])
