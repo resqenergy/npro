@@ -104,11 +104,11 @@ def run_simulation(session: requests.Session, project_data: dict) -> None:
         "autoSaveProjects": 1,
         "calc_id": 53029542,
         "license": "academic",
-        "BACKEND_VERSION": "4.5.0",
+        "BACKEND_VERSION": "4.7.0",
         "data": project_data["proj_json"],
     }
     response = session.post(f"{settings.NPRO_API}/calc_main", json=data)
     response.raise_for_status()
     run_data = response.json()
     if run_data["response"] != "success":
-        raise RuntimeError("Could not run simulation.")
+        raise RuntimeError(f"Could not run simulation. Error: '{run_data['server_msg']}'")
