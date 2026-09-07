@@ -118,9 +118,9 @@ def adapt_building(building_data: dict, building_update_data: dict, weather_data
     if "calculate_cooling_demand" in building_update_data and building_update_data.pop("calculate_cooling_demand"):
         temp_limit = default_values['limitTempCool']
         base_temp = default_values['supplyTempSpaceCool']
-        cooling_power_max = default_values['peakDemSpecCool']
-        cdd = cooling.calculate_cdd(weather_data, base_temp, temp_limit, case="cooling")
-        cooling_demand = cooling.calculate_cool_demand(cdd, cooling_power_max, base_temp)
+        cooling_demand_ref = default_values['annDemSpecCool']
+        cooling_factor = cooling.calculate_cooling_factor(weather_data, base_temp, temp_limit)
+        cooling_demand = cooling_demand_ref * cooling_factor
         current_building_data['annDemSpecCool'] = cooling_demand
 
     current_building_data.update(building_update_data)

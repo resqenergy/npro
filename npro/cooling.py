@@ -1,15 +1,16 @@
 import pandas as pd
+from npro.settings import WEATHER_DIR
 
 NORMALIZED_HEATING_REFERENCE_TEMPERATURE = -12
 NORMALIZED_COOLING_REFERENCE_TEMPERATURE = 38
 
 
-def extract_airtemp_from_csv(file_path):
+def extract_airtemp_from_csv(file_path, **kwargs):
     """
     Extracts air temperature from a CSV file into a pandas.Series.
     Index contains datetimes and values contain airtemp.
     """
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, **kwargs)
     # The CSV has month, day, hour. We'll assume a dummy year (e.g., 2021) for creating datetimes
     # or just use the columns if they are sufficient.
     # From inspection: "month","day","hour","doy",...
@@ -71,6 +72,23 @@ def calculate_cool_demand(
 ):
     delta_t = norm_temp - base_temp
     return cdd * max_cool_power / 1000 * 24 / delta_t
+
+
+def calculate_cooling_factor(airtemp_series, base_temp, limit_temp) -> float:
+    """
+    Return cooling factor based on relation between reference CDD and CDD from given air temperature.
+    """
+    cdd_weather = calculate_cdd(airtemp_series, base_temp, limit_temp, case="cooling")
+
+    file_path = WEATHER_DIR / "npro_ref.csv"
+    if not file_path.exists():
+        error_msg = f"Missing 'npro_ref.csv' in {WEATHER_DIR} for calculating cooling factor."
+        raise FileNotFoundError(error_msg)
+    airtemp_series_ref = extract_airtemp_from_csv(file_path)
+    cdd_ref = calculate_cdd(airtemp_series_ref, base_temp, limit_temp, case="cooling")
+
+    cooling_factor = cdd_weather / cdd_ref
+    return cooling_factor
 
 
 if __name__ == "__main__":
