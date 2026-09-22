@@ -1,5 +1,6 @@
 import pandas as pd
-from npro.settings import WEATHER_DIR
+
+from npro import settings  # reference settings.WEATHER_DIR live so monkeypatch in tests works
 
 NORMALIZED_HEATING_REFERENCE_TEMPERATURE = -12
 NORMALIZED_COOLING_REFERENCE_TEMPERATURE = 38
@@ -80,9 +81,9 @@ def calculate_cooling_factor(airtemp_series, base_temp, limit_temp) -> float:
     """
     cdd_weather = calculate_cdd(airtemp_series, base_temp, limit_temp, case="cooling")
 
-    file_path = WEATHER_DIR / "npro_ref.csv"
+    file_path = settings.WEATHER_DIR / "npro_ref.csv"
     if not file_path.exists():
-        error_msg = f"Missing 'npro_ref.csv' in {WEATHER_DIR} for calculating cooling factor."
+        error_msg = f"Missing 'npro_ref.csv' in {settings.WEATHER_DIR} for calculating cooling factor."
         raise FileNotFoundError(error_msg)
     airtemp_series_ref = extract_airtemp_from_csv(file_path)
     cdd_ref = calculate_cdd(airtemp_series_ref, base_temp, limit_temp, case="cooling")

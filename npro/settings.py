@@ -26,6 +26,7 @@ NPRO_API = "https://acad.npro.energy/api"
 NPRO_EMAIL = os.getenv("NPRO_EMAIL")
 NPRO_PASSWORD = os.getenv("NPRO_PASSWORD")
 NPRO_PROJECT = os.getenv("NPRO_PROJECT")
+NPRO_VERSION = os.getenv("NPRO_VERSION", "4.9.0")
 
 if not (NPRO_EMAIL and NPRO_PASSWORD):
     raise ValueError("NPRO_EMAIL and NPRO_PASSWORD must be set")

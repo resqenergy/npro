@@ -70,7 +70,7 @@ def test_building_results_differ_by_weather(tmp_path, monkeypatch):
 
     for building_name in BUILDINGS:
         csv_paths = [
-            _run_building_calc(session, project_data, wf, tmp_path, building_name, update_building=False)
+            _run_building_calc(session, project_data, wf, tmp_path, building_name, update_building=True)
             for wf in WEATHER_FILES
         ]
 

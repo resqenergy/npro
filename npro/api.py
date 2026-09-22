@@ -104,7 +104,7 @@ def run_simulation(session: requests.Session, project_data: dict) -> None:
         "autoSaveProjects": 1,
         "calc_id": 53029542,
         "license": "academic",
-        "BACKEND_VERSION": "4.7.0",
+        "BACKEND_VERSION": settings.NPRO_VERSION,
         "data": project_data["proj_json"],
     }
     response = session.post(f"{settings.NPRO_API}/calc_main", json=data)
